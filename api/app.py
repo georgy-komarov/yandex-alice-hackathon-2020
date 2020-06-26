@@ -141,14 +141,18 @@ def code_confirm():
 
     user_verification = db.session.query(UserVerification).filter(UserVerification.code == code).order_by(
         UserVerification.id.desc()).first()
-    user_verification.received_from = received_from
-    user_verification.bot_type = bot_type
-    user_verification.bot_user_id = bot_user_id
 
-    db.session.add(user_verification)
-    db.session.commit()
+    if user_verification:
+        user_verification.received_from = received_from
+        user_verification.bot_type = bot_type
+        user_verification.bot_user_id = bot_user_id
+        user_verification.expires = datetime(year=1970, month=1, day=1, hour=0, minute=0, second=0)
 
-    return jsonify({'success': True})
+        db.session.add(user_verification)
+        db.session.commit()
+
+        return jsonify({'success': True})
+    return jsonify({'success': False})
 
 
 if __name__ == '__main__':
