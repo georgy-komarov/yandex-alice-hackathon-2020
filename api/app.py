@@ -139,8 +139,8 @@ def code_confirm():
     bot_type = request.form['bot_type']
     bot_user_id = request.form['bot_user_id']
 
-    user_verification = db.session.query(UserVerification).filter(UserVerification.code == code).order_by(
-        UserVerification.id.desc()).first()
+    user_verification = db.session.query(UserVerification).filter(UserVerification.code == code).filter(
+        UserVerification.expires >= datetime.utcnow()).order_by(UserVerification.id.desc()).first()
 
     if user_verification:
         user_verification.received_from = received_from
