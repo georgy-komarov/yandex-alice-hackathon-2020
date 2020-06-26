@@ -114,12 +114,21 @@ def code_check(ya_id):
         return jsonify(
             {'success': False, 'message': 'Почему-то Вас нет в нашей базе данных. Попробуйте перезайти в навык!'})
 
-    user_verification = db.session.query(UserVerification).filter(UserVerification.user_id == user.id).order_by('-id').first()
+    user_verification = db.session.query(UserVerification).filter(UserVerification.user_id == user.id).order_by(
+        '-id').first()
     if not user_verification:
         return jsonify(
             {'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
 
     message = user_verification.received_from
+
+    if bot_type := user_verification.bot_type == 'Telegram':
+        user.tg_id = user_verification.bot_user_id
+    elif bot_type == 'VK':
+        user.vk_id = user_verification.bot_user_id
+    else:
+        return jsonify({'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
+
     return jsonify({'success': True, 'message': message})
 
 
