@@ -129,6 +129,9 @@ def code_check(ya_id):
     else:
         return jsonify({'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
 
+    db.session.add(user)
+    db.session.commit()
+
     return jsonify({'success': True, 'message': message})
 
 
