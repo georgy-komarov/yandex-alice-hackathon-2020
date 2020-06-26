@@ -68,18 +68,20 @@ class AliceTelegramBot:
         self.log(update)
 
         code = str(update.message.text).strip()
-        if len(code) != 6:
-            code += 'ValueError'
-
-        try:
-            code = int(code)
-        except ValueError:
+        if (not code.isdigit()) or len(code) != 6:
             update.message.reply_text(Messages.code_invalid)
             return
 
         update.message.reply_text(Messages.code_checking)
+
+        received_from = f'{update.message.from_user.first_name}'
+        if update.message.from_user.last_name:
+            received_from += f' {update.message.from_user.last_name}'
+        if update.message.from_user.username:
+            received_from += f', юзернейм {update.message.from_user.username}'
+
         api_message = self.api.code_confirm(code=str(code), bot_type='Telegram', bot_user_id=update.message.from_user.id,
-                                            received_from=f'{update.message.from_user.first_name}')
+                                            received_from=received_from)
         update.message.reply_text(api_message)
 
         if api_message == Messages.api_code_confirm_success:
