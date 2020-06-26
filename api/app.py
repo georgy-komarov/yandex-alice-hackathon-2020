@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from random import choice
 from datetime import datetime, timedelta
 
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 
 from extensions import db, migrate
 from models import User, UserVerification
@@ -47,6 +47,40 @@ def user_get_or_create(ya_id: str):
     return jsonify(response)
 
 
+@app.route('/api/user/telegram/<tg_id>/')
+def user_get_by_tg(tg_id: str):
+    response = {}
+
+    user = db.session.query(User).filter(User.tg_id == tg_id).first()
+    if not user:
+        exists = False
+    else:
+        exists = True
+        response.update(row2dict(user))
+
+    response['success'] = True
+    response['exists'] = exists
+
+    return jsonify(response)
+
+
+@app.route('/api/user/vk/<vk_id>/')
+def user_get_by_vk(vk_id: str):
+    response = {}
+
+    user = db.session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        exists = False
+    else:
+        exists = True
+        response.update(row2dict(user))
+
+    response['success'] = True
+    response['exists'] = exists
+
+    return jsonify(response)
+
+
 @app.route('/api/user/<ya_id>/code/generate/')
 def code_generate(ya_id):
     user = db.session.query(User).filter(User.ya_id == ya_id).first()
@@ -80,7 +114,7 @@ def code_check(ya_id):
         return jsonify(
             {'success': False, 'message': 'Почему-то Вас нет в нашей базе данных. Попробуйте перезайти в навык!'})
 
-    user_verification = db.session.query(UserVerification).filter(UserVerification.user_id == user.id).first()
+    user_verification = db.session.query(UserVerification).filter(UserVerification.user_id == user.id).order_by('-id').first()
     if not user_verification:
         return jsonify(
             {'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
@@ -91,7 +125,20 @@ def code_check(ya_id):
 
 @app.route('/api/code/confirm/', methods=['POST'])
 def code_confirm():
-    return jsonify('API for yandex-alice-hackathon-2020')
+    received_from = request.form['received_from']
+    code = request.form['code']
+    bot_type = request.form['bot_type']
+    bot_user_id = request.form['bot_user_id']
+
+    user_verification = db.session.query(UserVerification).filter(UserVerification.code == code).order_by('-id').first()
+    user_verification.received_from = received_from
+    user_verification.bot_type = bot_type
+    user_verification.bot_user_id = bot_user_id
+
+    db.session.add(user_verification)
+    db.session.commit()
+
+    return jsonify(user_verification)
 
 
 if __name__ == '__main__':

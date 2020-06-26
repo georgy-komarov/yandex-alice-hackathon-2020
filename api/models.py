@@ -23,4 +23,6 @@ class UserVerification(db.Model):
     code = db.Column(db.String(6), nullable=False)
     expires = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    bot_type = db.Column(db.String(8), nullable=True)
+    bot_user_id = db.Column(db.Integer, nullable=True)
     received_from = db.Column(db.String(512), nullable=True)
