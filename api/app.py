@@ -30,7 +30,7 @@ def index():
     return Response('API for yandex-alice-hackathon-2020')
 
 
-@app.route('/user/<ya_id>/')
+@app.route('/api/user/<ya_id>/')
 def user_get_or_create(ya_id: str):
     exists = True
     user = db.session.query(User).filter(User.ya_id == ya_id).first()
@@ -47,7 +47,7 @@ def user_get_or_create(ya_id: str):
     return jsonify(response)
 
 
-@app.route('/user/<ya_id>/code/generate/')
+@app.route('/api/user/<ya_id>/code/generate/')
 def code_generate(ya_id):
     user = db.session.query(User).filter(User.ya_id == ya_id).first()
     if not user:
@@ -73,7 +73,7 @@ def code_generate(ya_id):
     return jsonify(response)
 
 
-@app.route('/user/<ya_id>/code/check/')
+@app.route('/api/user/<ya_id>/code/check/')
 def code_check(ya_id):
     user = db.session.query(User).filter(User.ya_id == ya_id).first()
     if not user:
@@ -89,7 +89,7 @@ def code_check(ya_id):
     return jsonify({'success': True, 'message': message})
 
 
-@app.route('/code/confirm/', methods=['POST'])
+@app.route('/api/code/confirm/', methods=['POST'])
 def code_confirm():
     return jsonify('API for yandex-alice-hackathon-2020')
 
