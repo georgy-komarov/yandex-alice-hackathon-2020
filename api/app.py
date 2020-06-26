@@ -115,7 +115,7 @@ def code_check(ya_id):
             {'success': False, 'message': 'Почему-то Вас нет в нашей базе данных. Попробуйте перезайти в навык!'})
 
     user_verification = db.session.query(UserVerification).filter(UserVerification.user_id == user.id).order_by(
-        '-id').first()
+        UserVerification.id.desc()).first()
     if not user_verification:
         return jsonify(
             {'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
@@ -139,7 +139,8 @@ def code_confirm():
     bot_type = request.form['bot_type']
     bot_user_id = request.form['bot_user_id']
 
-    user_verification = db.session.query(UserVerification).filter(UserVerification.code == code).order_by('-id').first()
+    user_verification = db.session.query(UserVerification).filter(UserVerification.code == code).order_by(
+        UserVerification.id.desc()).first()
     user_verification.received_from = received_from
     user_verification.bot_type = bot_type
     user_verification.bot_user_id = bot_user_id
