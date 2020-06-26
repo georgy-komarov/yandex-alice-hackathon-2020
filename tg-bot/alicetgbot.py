@@ -8,6 +8,7 @@ from telegram.ext.callbackcontext import CallbackContext
 from telegram.update import Update
 
 from message_strings import Messages, UserReplies
+from api import API
 
 
 class Code:
@@ -21,9 +22,10 @@ class AliceTelegramBot:
     def __init__(self, token: str):
         self.updater = Updater(token, use_context=True)
 
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                            level=logging.INFO)
+        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         self._logger = logging.getLogger(__name__)
+
+        self.api = API(os.getenv('API_HOST'))
 
     def start(self):
         dp = self.updater.dispatcher
@@ -38,7 +40,7 @@ class AliceTelegramBot:
                 Code.MENU:                 [MessageHandler(Filters.text, self.menu)],
             },
 
-            fallbacks=[CommandHandler('cancel', cancel)]
+            fallbacks=[]
         )
 
         dp.add_handler(conv_handler)
@@ -75,27 +77,28 @@ class AliceTelegramBot:
             update.message.reply_text(Messages.code_invalid)
             return
 
-        # API REQUEST
         update.message.reply_text(Messages.code_checking)
-        success = True
+        api_message = self.api.code_confirm(code=str(code), bot_type='Telegram', bot_user_id=update.message.from_user.id,
+                                            received_from=f'{update.message.from_user.first_name}')
+        update.message.reply_text(api_message)
 
-        if success:
+        if api_message == Messages.api_code_confirm_success:
             update.message.reply_text(Messages.code_valid, reply_markup=ReplyKeyboardMarkup([[UserReplies.code_alice_approved]]))
             return Code.CODE_ALICE_APPROVING
         else:
             update.message.reply_text(Messages.code_invalid)
 
     def code_alice_approving(self, update: Update, context: CallbackContext):
-        # API REQUEST
         update.message.reply_text(Messages.code_alice_checking)
-        success = False
+        api_data = self.api.get_user_by_telegram_id(update.message.from_user.id)
 
-        if success:
+        if isinstance(api_data, str):
+            update.message.reply_text(api_data)
+            update.message.reply_text(Messages.code_alice_error)
+        else:
             update.message.reply_text(Messages.code_alice_ok, reply_markup=ReplyKeyboardRemove())
             update.message.reply_text(Messages.help)
             return Code.MENU
-        else:
-            update.message.reply_text(Messages.code_alice_error)
 
     def menu(self, update: Update, context: CallbackContext):
         self.log(update)

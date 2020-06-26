@@ -17,6 +17,15 @@ class Messages:
     help = 'Небольшой FAQ обо мне:' \
            '\nСамое главное - пользуйтесь клавиатурой! Так я смогу точно понять, что вы от меня хотите.'
 
+    api_bad_status_code = 'У меня какие-то проблемы с башкой (с API), мне прилетает {} статус код :(\n' \
+                          'Попробуйте позже'
+    api_user_not_exists = 'Такого пользователя нет в базе!'
+    api_user_valid = 'Пользователь найден! Все хорошо'
+    api_user_invalid = 'Что-то не так! '
+
+    api_code_confirm_success = 'Код подтвержден!'
+    api_code_confirm_fail = 'Ошибка с подтверждением по этому коду!'
+
 class UserReplies:
     enter_code = 'Ввести код'
     code_alice_approved = 'Сказал'
