@@ -47,7 +47,7 @@ def user_get_or_create(ya_id: str):
     return jsonify(response)
 
 
-@app.route('/user/<ya_id>/code/generate/', methods=['POST'])
+@app.route('/user/<ya_id>/code/generate/')
 def code_generate(ya_id):
     user = db.session.query(User).filter(User.ya_id == ya_id).first()
     if not user:

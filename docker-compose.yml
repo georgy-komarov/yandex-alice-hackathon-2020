@@ -3,24 +3,24 @@ version: "3"
 services:
   api:
     build: api
-    env_file: .env
+    env_file: ../yandex-alice-hackathon-2020.env
     network_mode: "host"
     restart: always
 
   dialogue:
     build: ya-dialogue
-    env_file: .env
+    env_file: ../yandex-alice-hackathon-2020.env
     network_mode: "host"
     restart: always
 
   tg-bot:
     build: tg-bot
-    env_file: .env
+    env_file: ../yandex-alice-hackathon-2020.env
     network_mode: "host"
     restart: always
 
   tg-parser:
     build: tg-parser
-    env_file: .env
+    env_file: ../yandex-alice-hackathon-2020.env
     network_mode: "host"
     restart: always
