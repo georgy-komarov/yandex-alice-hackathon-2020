@@ -148,7 +148,7 @@ def code_confirm():
     db.session.add(user_verification)
     db.session.commit()
 
-    return jsonify(user_verification)
+    return jsonify({'success': True})
 
 
 if __name__ == '__main__':
