@@ -108,7 +108,7 @@ def code_generate(ya_id):
 
 
 @app.route('/api/user/<ya_id>/code/check/')
-def code_check(ya_id):
+def code_check(ya_id, complete=False):
     user = db.session.query(User).filter(User.ya_id == ya_id).first()
     if not user:
         return jsonify(
@@ -122,17 +122,25 @@ def code_check(ya_id):
 
     message = user_verification.received_from
 
-    if bot_type := user_verification.bot_type == 'Telegram':
-        user.tg_id = user_verification.bot_user_id
-    elif bot_type == 'VK':
-        user.vk_id = user_verification.bot_user_id
-    else:
-        return jsonify({'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
+    if complete:
+        if bot_type := user_verification.bot_type == 'Telegram':
+            user.tg_id = user_verification.bot_user_id
+        elif bot_type == 'VK':
+            user.vk_id = user_verification.bot_user_id
+        else:
+            return jsonify(
+                {'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
 
-    db.session.add(user)
-    db.session.commit()
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'success': True})
 
     return jsonify({'success': True, 'message': message})
+
+
+@app.route('/api/user/<ya_id>/code/complete/')
+def code_complete(ya_id):
+    return code_check(ya_id, complete=True)
 
 
 @app.route('/api/code/confirm/', methods=['POST'])
