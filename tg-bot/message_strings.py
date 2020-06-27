@@ -49,6 +49,8 @@ class Messages:
 
     back_to_menu = 'Возвращение назад в меню'
 
+    feed_is_empty = 'Пусто! У вас нет активных подписок!'
+
 
 class UserReplies:
     enter_code = 'Ввести код'

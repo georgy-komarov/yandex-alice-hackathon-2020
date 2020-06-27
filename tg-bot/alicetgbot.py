@@ -42,8 +42,8 @@ class AliceTelegramBot:
                 Code.CODE_ENTER:           [MessageHandler(Filters.text, self.code_enter)],
                 Code.CODE_ALICE_APPROVING: [MessageHandler(Filters.text, self.code_alice_approving)],
                 Code.MENU:                 [MessageHandler(Filters.text, self.menu)],
-                Code.FEED_ADD:             [MessageHandler(Filters.text, self.menu)],
-                Code.FEED_DELETE:          [MessageHandler(Filters.text, self.menu)],
+                Code.FEED_ADD:             [MessageHandler(Filters.text, self.feed_add)],
+                Code.FEED_DELETE:          [MessageHandler(Filters.text, self.feed_delete)],
             },
 
             fallbacks=[]
@@ -124,7 +124,12 @@ class AliceTelegramBot:
             if isinstance(api_response, str):
                 update.message.reply_text(api_response)
             else:
-                update.message.reply_text('\n'.join(f'{x[0]}. {x[1]}, {x[2]}' for x in api_response['feed']))
+                feed = self._feed_all_message(api_response)
+
+                if len(feed) != 0:
+                    update.message.reply_text(feed)
+                else:
+                    update.message.reply_text(Messages.feed_is_empty)
 
         elif msg == UserReplies.menu_channel_add:
             update.message.reply_text(Messages.menu_channel_add, reply_markup=ReplyKeyboardMarkup([[UserReplies.back_to_menu]]))
@@ -132,12 +137,27 @@ class AliceTelegramBot:
 
         elif msg == UserReplies.menu_channel_delete:
             update.message.reply_text(Messages.menu_channel_delete, reply_markup=ReplyKeyboardMarkup([[UserReplies.back_to_menu]]))
-            return Code.FEED_DELETE
+
+            api_response = self.api.get_tg_feed(update.message.from_user.id)
+            if isinstance(api_response, str):
+                update.message.reply_text(api_response)
+            else:
+                feed = self._feed_all_message(api_response)
+
+                if len(feed) != 0:
+                    update.message.reply_text(feed, reply_markup=ReplyKeyboardMarkup([[UserReplies.back_to_menu]]))
+                    return Code.FEED_DELETE
+                else:
+                    update.message.reply_text(Messages.feed_is_empty)
 
         else:
-            update.message.reply_text(Messages.menu_use_kb)
+            update.message.reply_text(Messages.menu_use_kb, reply_markup=ReplyKeyboardMarkup(UserReplies.menu_channel_keyboard))
+
+    def _feed_all_message(self, api_response):
+        return '\n'.join(f'{x[0]}. {x[1]}, {x[2]}' for x in api_response['feed'])
 
     def feed_add(self, update: Update, context: CallbackContext):
+        self.log(update)
         text = update.message.text
 
         if text == UserReplies.back_to_menu:
@@ -145,7 +165,9 @@ class AliceTelegramBot:
             return Code.MENU
 
         try:
-            name, url = update.message.text.split()[:-1], update.message.text.split()[-1]
+            if ' ' not in text:
+                raise ValueError()
+            name, url = text.split()[:-1], text.split()[-1]
         except Exception as e:
             update.message.reply_text(Messages.feed_add_invalid)
             return
@@ -157,6 +179,7 @@ class AliceTelegramBot:
             update.message.reply_text(Messages.feed_add_success.format(api_response['id']))
 
     def feed_delete(self, update: Update, context: CallbackContext):
+        self.log(update)
         text = update.message.text
 
         if text == UserReplies.back_to_menu:
