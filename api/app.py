@@ -84,7 +84,7 @@ def user_tg_feed(tg_id: str):
     return jsonify(response)
 
 
-@app.route('/api/user/telegram/<tg_id>/feed/add', methods=['POST'])
+@app.route('/api/user/telegram/<tg_id>/feed/add/', methods=['POST'])
 def user_tg_feed_add(tg_id: str):
     source_url = request.form['tape_url']
     source_name = request.form['tape_name']
@@ -102,6 +102,32 @@ def user_tg_feed_add(tg_id: str):
         db.session.commit()
 
         success = True
+
+    response['success'] = success
+
+    return jsonify(response)
+
+
+@app.route('/api/user/telegram/<tg_id>/feed/delete/', methods=['POST'])
+def user_tg_feed_delete(tg_id: str):
+    source_number = int(request.form['tape_id'])
+
+    response = {}
+
+    user = db.session.query(User).filter(User.tg_id == tg_id).first()
+    if not user:
+        success = False
+    else:
+        user_feed_query = db.session.query(UserChannel).filter(UserChannel.user_id == user.id).order_by(
+            UserChannel.id.desc())
+        user_feed = list(user_feed_query)
+
+        to_delete = user_feed[source_number - 1]
+        db.session.delete(to_delete)
+        db.session.commit()
+
+        success = True
+        response['deleted'] = row2dict(to_delete)
 
     response['success'] = success
 
@@ -163,6 +189,32 @@ def user_vk_feed_add(vk_id: str):
         db.session.commit()
 
         success = True
+
+    response['success'] = success
+
+    return jsonify(response)
+
+
+@app.route('/api/user/telegram/<vk_id>/feed/delete/', methods=['POST'])
+def user_vk_feed_delete(vk_id: str):
+    source_number = int(request.form['group_id'])
+
+    response = {}
+
+    user = db.session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        success = False
+    else:
+        user_feed_query = db.session.query(UserChannel).filter(UserChannel.user_id == user.id).order_by(
+            UserChannel.id.desc())
+        user_feed = list(user_feed_query)
+
+        to_delete = user_feed[source_number - 1]
+        db.session.delete(to_delete)
+        db.session.commit()
+
+        success = True
+        response['deleted'] = row2dict(to_delete)
 
     response['success'] = success
 
