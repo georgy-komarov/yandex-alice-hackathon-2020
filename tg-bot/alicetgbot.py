@@ -85,12 +85,17 @@ class AliceTelegramBot:
         update.message.reply_text(api_message)
 
         if api_message == Messages.api_code_confirm_success:
-            update.message.reply_text(Messages.code_valid, reply_markup=ReplyKeyboardMarkup([[UserReplies.code_alice_approved]]))
+            update.message.reply_text(Messages.code_valid, reply_markup=ReplyKeyboardMarkup([[UserReplies.code_alice_approved],
+                                                                                             [UserReplies.code_alice_new]]))
             return Code.CODE_ALICE_APPROVING
         else:
             update.message.reply_text(Messages.code_invalid)
 
     def code_alice_approving(self, update: Update, context: CallbackContext):
+        if update.message.text == UserReplies.code_alice_new:
+            update.message.reply_text(Messages.code_entry, reply_markup=ReplyKeyboardRemove())
+            return Code.CODE_ENTER
+
         update.message.reply_text(Messages.code_alice_checking)
         api_data = self.api.get_user_by_telegram_id(update.message.from_user.id)
 
