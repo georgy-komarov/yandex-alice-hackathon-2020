@@ -74,7 +74,7 @@ def user_tg_feed(tg_id: str):
     else:
         user_feed_query = db.session.query(UserChannel).filter(UserChannel.user_id == user.id).order_by(
             UserChannel.id.desc())
-        user_feed = [row2dict(x) for x in user_feed_query]
+        user_feed = [row2dict(x) for x in list(user_feed_query)]
 
         response['feed'] = user_feed
         success = True
@@ -84,9 +84,9 @@ def user_tg_feed(tg_id: str):
     return jsonify(response)
 
 
-@app.route('/api/user/telegram/<tg_id>/feed/add')
+@app.route('/api/user/telegram/<tg_id>/feed/add', methods=['POST'])
 def user_tg_feed_add(tg_id: str):
-    source_id = request.form['tape_url']
+    source_url = request.form['tape_url']
     source_name = request.form['tape_name']
     source_type = 'Telegram'
 
@@ -96,7 +96,7 @@ def user_tg_feed_add(tg_id: str):
     if not user:
         success = False
     else:
-        user_feed_new = UserChannel(user_id=user.id, source_id=source_id, source_url=source_name,
+        user_feed_new = UserChannel(user_id=user.id, source_url=source_url, source_name=source_name,
                                     source_type=source_type)
         db.session.add(user_feed_new)
         db.session.commit()
@@ -121,6 +121,50 @@ def user_get_by_vk(vk_id: str):
 
     response['success'] = True
     response['exists'] = exists
+
+    return jsonify(response)
+
+
+@app.route('/api/user/vk/<vk_id>/feed/')
+def user_vk_feed(vk_id: str):
+    response = {}
+
+    user = db.session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        success = False
+    else:
+        user_feed_query = db.session.query(UserChannel).filter(UserChannel.user_id == user.id).order_by(
+            UserChannel.id.desc())
+        user_feed = [row2dict(x) for x in list(user_feed_query)]
+
+        response['feed'] = user_feed
+        success = True
+
+    response['success'] = success
+
+    return jsonify(response)
+
+
+@app.route('/api/user/vk/<vk_id>/feed/add', methods=['POST'])
+def user_vk_feed_add(vk_id: str):
+    source_id = int(request.form['group_id'])
+    source_name = request.form['group_name']
+    source_type = 'VK'
+
+    response = {}
+
+    user = db.session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        success = False
+    else:
+        user_feed_new = UserChannel(user_id=user.id, source_id=source_id, source_name=source_name,
+                                    source_type=source_type)
+        db.session.add(user_feed_new)
+        db.session.commit()
+
+        success = True
+
+    response['success'] = success
 
     return jsonify(response)
 
