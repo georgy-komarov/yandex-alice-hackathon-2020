@@ -38,7 +38,7 @@ class API:
         else:
             return Messages.api_code_confirm_fail
 
-    def get_tg_feed(self, tg_id: int) ->:
+    def get_tg_feed(self, tg_id: int):
         resp = self.get(f'/user/telegram/{tg_id}/feed')
         if resp.status_code != 200:
             return Messages.api_bad_status_code
