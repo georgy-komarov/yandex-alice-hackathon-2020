@@ -64,6 +64,23 @@ def user_get_by_tg(tg_id: str):
     return jsonify(response)
 
 
+@app.route('/api/user/telegram/<tg_id>/')
+def user_get_by_tg(tg_id: str):
+    response = {}
+
+    user = db.session.query(User).filter(User.tg_id == tg_id).first()
+    if not user:
+        exists = False
+    else:
+        exists = True
+        response.update(row2dict(user))
+
+    response['success'] = True
+    response['exists'] = exists
+
+    return jsonify(response)
+
+
 @app.route('/api/user/vk/<vk_id>/')
 def user_get_by_vk(vk_id: str):
     response = {}
@@ -121,6 +138,8 @@ def code_check(ya_id, complete=False):
             {'success': False, 'message': 'Что-то пошло не так... Повторите попытку авторизации в боте!'})
 
     message = user_verification.received_from
+    if not message:
+        return jsonify({'success': False, 'message': message})
 
     if complete:
         if bot_type := user_verification.bot_type == 'Telegram':
