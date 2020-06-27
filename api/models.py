@@ -26,3 +26,16 @@ class UserVerification(db.Model):
     bot_type = db.Column(db.String(8), nullable=True)
     bot_user_id = db.Column(db.Integer, nullable=True)
     received_from = db.Column(db.String(512), nullable=True)
+
+
+class UserChannel(db.Model):
+    __tablename__ = 'users_channels'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    source_id = db.Column(db.Integer, nullable=True)
+    source_url = db.Column(db.String(1024), nullable=True)
+    source_name = db.Column(db.String(512), nullable=False)
+    source_type = db.Column(db.String(8), nullable=False)
