@@ -38,6 +38,72 @@ class API:
         else:
             return Messages.api_code_confirm_fail
 
+    def get_tg_feed(self, tg_id: int) ->:
+        resp = self.get(f'/user/telegram/{tg_id}/feed')
+        if resp.status_code != 200:
+            return Messages.api_bad_status_code
+
+        data = resp.json()
+        if data['success']:
+            return data
+        else:
+            return Messages.api_feed_get_fail
+
+    def get_vk_feed(self, vk_id: int):
+        resp = self.get(f'/user/vk/{vk_id}/feed')
+        if resp.status_code != 200:
+            return Messages.api_bad_status_code
+
+        data = resp.json()
+        if data['success']:
+            return data
+        else:
+            return Messages.api_feed_get_fail
+
+    def add_tg_feed(self, tg_id: int, tape_name: str, tape_url: str):
+        resp = self.post(f'/user/telegram/{tg_id}/feed/add', tape_name=tape_name, tape_url=tape_url)
+        if resp.status_code != 200:
+            return Messages.api_bad_status_code
+
+        data = resp.json()
+        if data['success']:
+            return data
+        else:
+            return Messages.api_feed_add_fail
+
+    def add_vk_feed(self, vk_id: int, group_name: str, group_id: int):
+        resp = self.post(f'/user/vk/{vk_id}/feed/add', group_name=group_name, group_id=group_id)
+        if resp.status_code != 200:
+            return Messages.api_bad_status_code
+
+        data = resp.json()
+        if data['success']:
+            return data
+        else:
+            return Messages.api_feed_add_fail
+
+    def delete_tg_feed(self, tg_id: int, tape_id: int):
+        resp = self.post(f'/user/telegram/{tg_id}/feed/delete', tape_id=tape_id)
+        if resp.status_code != 200:
+            return Messages.api_bad_status_code
+
+        data = resp.json()
+        if data['success']:
+            return data
+        else:
+            return Messages.api_feed_delete_fail
+
+    def delete_vk_feed(self, vk_id: int, group_id: int):
+        resp = self.post(f'/user/мл/{vk_id}/feed/delete', group_id=group_id)
+        if resp.status_code != 200:
+            return Messages.api_bad_status_code
+
+        data = resp.json()
+        if data['success']:
+            return data
+        else:
+            return Messages.api_feed_delete_fail
+
     def get(self, method: str, **kwargs) -> Response:
         return self._method('get', method, **kwargs)
 
