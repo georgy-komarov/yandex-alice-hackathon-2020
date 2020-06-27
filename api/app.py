@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from flask import Flask, Response, jsonify, request
 
 from extensions import db, migrate
-from models import User, UserVerification
+from models import User, UserVerification, UserChannel
 
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
 REPOSITORY_PATH = os.path.dirname(APP_PATH)
@@ -64,19 +64,46 @@ def user_get_by_tg(tg_id: str):
     return jsonify(response)
 
 
-@app.route('/api/user/telegram/<tg_id>/')
-def user_get_by_tg(tg_id: str):
+@app.route('/api/user/telegram/<tg_id>/feed/')
+def user_tg_feed(tg_id: str):
     response = {}
 
     user = db.session.query(User).filter(User.tg_id == tg_id).first()
     if not user:
-        exists = False
+        success = False
     else:
-        exists = True
-        response.update(row2dict(user))
+        user_feed_query = db.session.query(UserChannel).filter(UserChannel.user_id == user.id).order_by(
+            UserChannel.id.desc())
+        user_feed = [row2dict(x) for x in user_feed_query]
 
-    response['success'] = True
-    response['exists'] = exists
+        response['feed'] = user_feed
+        success = True
+
+    response['success'] = success
+
+    return jsonify(response)
+
+
+@app.route('/api/user/telegram/<tg_id>/feed/add')
+def user_tg_feed_add(tg_id: str):
+    source_id = request.form['tape_url']
+    source_name = request.form['tape_name']
+    source_type = 'Telegram'
+
+    response = {}
+
+    user = db.session.query(User).filter(User.tg_id == tg_id).first()
+    if not user:
+        success = False
+    else:
+        user_feed_new = UserChannel(user_id=user.id, source_id=source_id, source_url=source_name,
+                                    source_type=source_type)
+        db.session.add(user_feed_new)
+        db.session.commit()
+
+        success = True
+
+    response['success'] = success
 
     return jsonify(response)
 
