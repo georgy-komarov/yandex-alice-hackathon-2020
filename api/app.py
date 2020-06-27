@@ -2,11 +2,14 @@ import os
 from dotenv import load_dotenv
 from random import choice
 from datetime import datetime, timedelta
+import json
 
 from flask import Flask, Response, jsonify, request
 
 from extensions import db, migrate
-from models import User, UserVerification, UserChannel
+from models import User, UserVerification, UserChannel, TelegramMessages
+
+from subprocess import check_output
 
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
 REPOSITORY_PATH = os.path.dirname(APP_PATH)
@@ -306,6 +309,45 @@ def code_confirm():
 
         return jsonify({'success': True})
     return jsonify({'success': False})
+
+
+@app.route('/api/user/<ya_id>/message/')
+def get_message(ya_id):
+    response = {}
+
+    user = db.session.query(User).filter(User.ya_id == ya_id).first()
+    if not user:
+        success = False
+    else:
+        user_feed_query = db.session.query(UserChannel).filter(UserChannel.user_id == user.id).order_by(
+            UserChannel.id.desc())
+        user_feed = [row2dict(x) for x in list(user_feed_query)]
+
+        channel_db = choice(user_feed)
+        output = check_output(['python', 'tg_parser.py', channel_db['source_url']]).decode()
+        messages = json.loads(output)
+
+        existing_ids_query = db.session.query(TelegramMessages).filter(TelegramMessages.channel == channel_db['id'])
+        existing_ids = [x.id for x in existing_ids_query]
+
+        for m in messages:
+            if m['id'] not in existing_ids:
+                message_db = TelegramMessages(channel=channel_db['id'], message_id=m['id'], message_text=m['message'])
+                db.session.add(message_db)
+        db.session.commit()
+
+        message = db.session.query(TelegramMessages).filter(TelegramMessages.old == False).order_by(
+            TelegramMessages.id.desc()).first()
+        message.old = True
+        db.session.commit()
+
+        success = True
+        response['channel_name'] = channel_db['source_name']
+        response['message'] = message.message_text
+
+    response['success'] = success
+
+    return jsonify(response)
 
 
 if __name__ == '__main__':
