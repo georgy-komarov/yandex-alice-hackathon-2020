@@ -30,3 +30,4 @@ class Messages:
 class UserReplies:
     enter_code = 'Ввести код'
     code_alice_approved = 'Сказал'
+    code_alice_new = 'Ввести новый код'
