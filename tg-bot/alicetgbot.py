@@ -73,7 +73,7 @@ class AliceTelegramBot:
     def code_enter(self, update: Update, context: CallbackContext):
         self.log(update)
 
-        code = str(update.message.text).strip()
+        code = str(update.message.text).strip().replace(' ', '').replace('\t', '')
         if not self.debug and ((not code.isdigit()) or len(code) != 6):
             update.message.reply_text(Messages.code_invalid)
             return
@@ -154,7 +154,7 @@ class AliceTelegramBot:
             update.message.reply_text(Messages.menu_use_kb, reply_markup=ReplyKeyboardMarkup(UserReplies.menu_channel_keyboard))
 
     def _feed_all_message(self, api_response):
-        return '\n'.join(f'{x[0]}. {x[1]}, {x[2]}' for x in api_response['feed'])
+        return '\n'.join(f'{sid}. {x["source_name"]}, {x["source_url"]}' for sid, x in enumerate(api_response['feed'], start=1))
 
     def feed_add(self, update: Update, context: CallbackContext):
         self.log(update)
@@ -176,7 +176,8 @@ class AliceTelegramBot:
         if isinstance(api_response, str):
             update.message.reply_text(api_response)
         else:
-            update.message.reply_text(Messages.feed_add_success.format(api_response['id']))
+            update.message.reply_text(Messages.feed_add_success, reply_markup=ReplyKeyboardMarkup(UserReplies.menu_channel_keyboard))
+            return Code.MENU
 
     def feed_delete(self, update: Update, context: CallbackContext):
         self.log(update)
@@ -196,7 +197,7 @@ class AliceTelegramBot:
         if isinstance(api_response, str):
             update.message.reply_text(api_response)
         else:
-            update.message.reply_text(Messages.feed_delete_success.format(tape_id))
+            update.message.reply_text(Messages.feed_delete_success.format(api_response['deleted']['source_name']))
 
     def log(self, update: Update):
         self._logger.info(f'Message from {update.message.from_user.first_name} = {update.message.text}')
