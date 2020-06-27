@@ -39,3 +39,15 @@ class UserChannel(db.Model):
     source_url = db.Column(db.String(1024), nullable=True)
     source_name = db.Column(db.String(512), nullable=False)
     source_type = db.Column(db.String(8), nullable=False)
+
+
+class TelegramMessages(db.Model):
+    __tablename__ = 'tg_messages'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    channel = db.Column(db.Integer, db.ForeignKey('users_channels.id'), nullable=False)
+
+    message_id = db.Column(db.Integer, nullable=False)
+    message_text = db.Column(db.Text, nullable=False)
+    message_old = db.Column(db.Boolean, nullable=False, default=False)
